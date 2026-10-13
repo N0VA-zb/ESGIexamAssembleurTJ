@@ -11,6 +11,7 @@ default rel
 %define P_FLAGS     0x04
 %define P_OFFSET    0x08
 %define P_VADDR     0x10
+%define P_PADDR     0x18
 %define P_FILESZ    0x20
 %define P_MEMSZ     0x28
 %define P_ALIGN     0x30
@@ -88,6 +89,12 @@ _start:
     mov rax, [fsize]    ; taille du fichier cible
     add rax, 0xFFF  ; arrondir au 0x1000 superieur
     and rax, ~0xFFF     ; enleve les 12 bits du bas
+
+    mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
+    mov dword [rbx + P_FLAGS], PF_R|PF_X ; flags = lisible + executable
+    mov [rbx + P_OFFSET], rax           ; offset = vaddr
+    mov [rbx + P_VADDR], rax            ; vaddr
+    mov [rbx + P_PADDR], rax            ; paddr
 
     mov rax, 1  ; syscall write
     mov rdi, 1  ; stdout
