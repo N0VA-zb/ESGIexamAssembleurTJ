@@ -28,6 +28,12 @@ _start:
     syscall
 
 .usage:
+    mov rax, 1
+    mov rdi, 1
+    lea rsi, [msg_usage]
+    mov rdx, msg_usage_len
+    syscall
+
     mov rax, 60
     mov rdi, 1
     syscall
