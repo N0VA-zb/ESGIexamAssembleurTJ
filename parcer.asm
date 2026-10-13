@@ -6,9 +6,9 @@ section .data
     msg_len equ $ - msg
     msg_usage db "Usage: ./parcer <elf>", 10
     msg_usage_len equ $ - msg_usage
-    hexdigits db "0123456789abcdef"
+    hexdigits db "0123456789abcdef" ; pour convertir un hex en caractère
     msg_entry db "Entry point : 0x"
-    msg_entry_len equ $ - msg_entry
+    msg_entry_len equ $ - msg_entry ; longueur calculeé automatiquement
 
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
