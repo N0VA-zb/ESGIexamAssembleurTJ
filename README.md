@@ -1,8 +1,6 @@
 Arborescence : 
 
-  
-- parcer.asm qui va analyser le binaire ELF
-- infecteur.asm qui va injecter un shellcode dans un binaire ELF
+- infecteur.asm qui va analyser le binaire ELF et injecter un shellcode dans un binaire ELF
 - reverseshell.asm c'est le shellcode reverseshell (connexion vers l'attaquant)
 
 
