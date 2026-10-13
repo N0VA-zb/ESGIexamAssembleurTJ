@@ -76,6 +76,7 @@ _start:
     .find_note:
     cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
     je .found   ; si oui, saute a .found
+
     add rbx, P_PHDR_SIZE    ; phdr suivant (56 octets)
     dec rcx ; decremente le compteur
     jnz .find_note  ; si reste > 0, on reboucle
