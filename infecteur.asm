@@ -20,12 +20,12 @@ section .text
 
 _start:
     mov rax, [rsp]
-    cmp rax, 2
+    cmp rax, 3
     jl .usage
 
     ;open
     mov rdi, [rsp + 16]
-    xor rsi, rsi
+    xor rsi, 2
     mov rax, 2  ; syscall ouvert
     syscall
     test rax, rax
@@ -44,19 +44,12 @@ _start:
     xor rdi, rdi            ; addr NULL
     mov rsi, [fsize]        ; longuer du fichier
     mov rdx, 3              ; PROT_READ et WRITE
-    mov r10, 2
+    mov r10, 1
     mov r8, [fd]
     xor r9, r9
     mov rax, 9              ; mmap
     syscall
     mov [buf], rax
-
-    ;write
-    mov rax, 1
-    mov rdi, 1
-    lea rsi, [msg]
-    mov rdx, msg_len
-    syscall
 
     ;exit
     mov rax, 60
@@ -73,35 +66,3 @@ _start:
     mov rax, 60
     mov rdi, 1
     syscall
-
-    ; print_hex affiche rax en hexa
-    print_hex:  
-    push rbx    ;
-    push rcx    ;
-    push rdx    ; sauvegarde les registres qu'on va modifier
-    push rsi    ;
-    sub rsp, 16     ; 16 octets réservés pour le bugger
-    lea rdi, [rsp + 15]
-    mov byte [rdi], 0
-    mov rcx, 16     ; compteur de 16 chiffres
-.loop:
-    dec rdi
-    mov rbx, rax
-    and rbx, 0xF
-    lea rsi, [hexdigits]
-    mov bl, [rsi + rbx]
-    mov [rdi], bl
-    shr rax, 4
-    dec rcx
-    jnz .loop
-    lea rsi, [rsp]  ;
-    mov rdx, 16     ;
-    mov rax, 1      ; on affiche les 16 caractères du buffer
-    mov rdi, 1      ;
-    syscall         ;
-    add rsp, 16
-    pop rsi
-    pop rdx
-    pop rcx
-    pop rbx
-    ret
