@@ -18,6 +18,7 @@ default rel
 %define P_PHDR_SIZE 56
 
 ; types
+%define PT_INTERP 3
 %define PT_NOTE 4
 %define PT_LOAD 1
 %define PF_R    4
@@ -74,6 +75,11 @@ _start:
     xor r14, r14 ; r14 = max(vaddr + memsz) des LOAD
 
     .find_note:
+    cmp dword [rbx + P_TYPE], PT_INTERP     ; PT_INTERP ?
+    jne .skip_interp
+    mov dword [rbx + P_TYPE], 0     ; change en PT_NULL
+
+.skip_interp:
     cmp dword [rbx + P_TYPE], PT_LOAD       ; c'est un LOAD ?
     jne .skip_max   ; non, on passe
     mov rdx, [rbx + P_VADDR]    ; vaddr du LOAD

