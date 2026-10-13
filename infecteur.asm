@@ -99,11 +99,6 @@ _start:
     xor rdi, rdi        ; code de retour 0 (succes)
     syscall
 
-    ;exit
-    mov rax, 60
-    xor rdi, rdi
-    syscall
-
 .usage:
     mov rax, 1
     mov rdi, 1
