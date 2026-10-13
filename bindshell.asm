@@ -11,5 +11,9 @@ mov rdx, 0      ; protocol = 0 le noyau chosiit auto tcp
 syscall
 
 ;sockaddr
-xor rbx, rbx
+xor rbx, rbx    ;
+push rbx        ; sin addr =
+push rbx        ;
+mov rbx, 0x5c110002
 push rbx
+mov rsi, rsp    ;
