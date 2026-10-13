@@ -1,17 +1,17 @@
 Arborescence : 
 
 - infecteur.asm qui va analyser le binaire ELF et injecter un shellcode dans un binaire ELF
-- reverseshell.asm c'est le shellcode reverseshell (connexion vers l'attaquant)
 
+- reverseshell.asm c'est le shellcode reverseshell (connexion vers l'attaquant)
 
 - Compilation
 
-infecteur :
+Infecteur :
 
 nasm -f elf64 infecteur.asm -o infecteur.o
 ld infecteur.o -o infecteur
 
-reverseshell :
+Reverseshell :
 
 nasm -f bin reverseshell.asm -o reverseshell.bin
 
@@ -31,7 +31,7 @@ Au lancement du binaire infecté, le kernel saute directement sur le shellcode.
 
 Utilisation :
 
-1 - Copier le binaire cible (!!! ne jamais infecter l'original) :
+1 - Copier le binaire cible (!!! ne jamais infecter l'original):
     cp /bin/ls ./test_ls
 
 2 - Infecter :
