@@ -69,6 +69,7 @@ _start:
     mov rax, [buf]  ; base du fichier mappe
     mov rbx, [rax + E_PHOFF]    ; e_phoff = offset table phdrs
     add rbx, rax    ; rbx = adresse du 1er phdr
+    movzx rcx, word [rax + E_PHNUM] ; nombre de segments
 
     ;exit
     mov rax, 60
