@@ -108,7 +108,13 @@ _start:
     syscall
     test rax, rax
     js .exit_ok ; si erreur, on sort proprement
-    mov r14, rax ; r14 = fd du shellcode
+    mov r14, rax ; on garde le fd dans r14
+    mov rdi, r14 ;  on le remet dans rdi pour lseek
+    xor rsi, rsi ; offset 0
+    mov rdx, 2 ; SEEK_END
+    mov rax, 8 ; syscall lseek
+    syscall
+    mov r15, rax ; r15 = taille du shellcode
 
     mov rax, 1  ; syscall write
     mov rdi, 1  ; stdout
