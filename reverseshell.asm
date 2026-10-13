@@ -38,7 +38,7 @@ syscall
 
 ;stdout
 mov rax, 0x21
-mov rdi, r12    ; connexion au socket
+mov rdi, r12   ; connexion au socket
 mov rsi, 1      ; stdout : rsi = 1
 syscall
 
