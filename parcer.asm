@@ -20,12 +20,14 @@ _start:
     cmp rax, 2
     jl .usage
 
+    ;open
     mov rdi, [rsp + 16]
     xor rsi, rsi
     mov rax, 2  ; syscall ouvert
     syscall
     test rax, rax
     jl .usage
+    mov [fd], rax
 
     ;lseek
     mov rdi, [fd]
@@ -47,7 +49,6 @@ _start:
     mov [buf], rax
 
     ;write
-    mov [fd], rax
     mov rax, 1
     mov rdi, 1
     lea rsi, [msg]
