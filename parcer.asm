@@ -5,6 +5,9 @@ section .data
     msg db "parcer: alive", 10
     msg_len equ $ - msg
 
+section .bss
+    fd: resq 1 // on réserve 8 octets pour stocker le file descriptor
+
 section .text
     global _start
 
