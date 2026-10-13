@@ -14,15 +14,26 @@ section .text
     global _start
 
 _start:
-    mov rax, [rsp]          ; argc
+    mov rax, [rsp]
     cmp rax, 2
     jl .usage
+
+    mov rdi, [rsp + 16]
+    xor rsi, rsi
+    mov rax, 2  ; syscall ouvert
+    syscall
+    test rax, rax
+    jl .usage
+
+    ;write
+    mov [fd], rax
     mov rax, 1
     mov rdi, 1
     lea rsi, [msg]
     mov rdx, msg_len
     syscall
 
+    ;exit
     mov rax, 60
     xor rdi, rdi
     syscall
