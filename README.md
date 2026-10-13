@@ -6,11 +6,6 @@ Arborescence :
 
 - Compilation
 
-Commandes parcer : 
-
-nasm -f elf64 parcer.asm -o parcer.o
-ld parcer.o -o parcer
-
 infecteur :
 
 nasm -f elf64 infecteur.asm -o infecteur.o
