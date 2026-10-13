@@ -71,6 +71,9 @@ _start:
     add rbx, rax    ; rbx = adresse du 1er phdr
     movzx rcx, word [rax + E_PHNUM] ; nombre de segments
 
+    .find_note:
+    cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
+
     ;exit
     mov rax, 60
     xor rdi, rdi
