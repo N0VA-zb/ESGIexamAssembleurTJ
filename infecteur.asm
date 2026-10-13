@@ -98,6 +98,17 @@ _start:
     mov [rbx + P_FILESZ], 0  ; filesz = 0 pour l'instant
     mov [rbx + P_MEMSZ], 0  ; memsz = 0 pour l'instant
     mov qword [rbx + P_ALIGN], 0x1000 ; alignement page
+    mov rcx, [buf] ; base du fichier mappe
+    mov [rcx + E_ENTRY], rax    ; e_entry = vaddr du shellcode
+
+    ; ouvrir le shellcode
+    mov rdi, [rsp + 24] ; argv[2] = chemin du shellcode
+    xor rsi, rsi ; O_RDONLY
+    mov rax, 2 ; syscall open
+    syscall
+    test rax, rax
+    js .exit_ok ; si erreur, on sort proprement
+    mov r14, rax ; r14 = fd du shellcode
 
     mov rax, 1  ; syscall write
     mov rdi, 1  ; stdout
@@ -107,6 +118,11 @@ _start:
 
     mov rax, 60 ; syscall exit
     xor rdi, rdi        ; code de retour 0 (succes)
+    syscall
+
+.exit_ok:
+    mov rax, 60  ; syscall exit
+    xor rdi, rdi ; code de retour 0
     syscall
 
 .usage:
