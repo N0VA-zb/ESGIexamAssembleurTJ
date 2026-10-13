@@ -4,6 +4,8 @@ default rel
 section .data
     msg db "parcer: alive", 10
     msg_len equ $ - msg
+    msg_usage db "Usage: ./parcer <elf>", 10
+    msg_usage_len equ $ - msg_usage
 
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
@@ -19,5 +21,5 @@ _start:
     syscall
 
     mov rax, 60
-    xor rdi, rdi    ; j'ai changé cette partie car ca avait fait un bug ( on restait en = 1 alors qu'on doit etre à 0)
+    xor rdi, rdi
     syscall
