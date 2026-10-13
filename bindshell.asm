@@ -9,3 +9,7 @@ mov rdi, 2      ; inet en IPv4
 mov rsi, 1      ; sock stream pour tcp
 mov rdx, 0      ; protocol = 0 le noyau chosiit auto tcp
 syscall
+
+;sockaddr
+xor rbx, rbx
+push rbx
