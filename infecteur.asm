@@ -124,8 +124,8 @@ _start:
     syscall
     test rax, rax
     js .exit_ok ; si erreur, on sort proprement
-    mov r11, rax ; on garde le fd dans r11
-    mov rdi, r11 ;  on le remet dans rdi pour lseek
+    mov r12, rax ; on garde le fd dans r12
+    mov rdi, r12 ;  on le remet dans rdi pour lseek
     xor rsi, rsi ; offset 0
     mov rdx, 2 ; SEEK_END
     mov rax, 8 ; syscall lseek
@@ -136,7 +136,7 @@ _start:
     mov rsi, r15 ; taille du shellcode
     mov rdx, 1 ; PROT_READ
     mov r10, 2 ; MAP_PRIVATE
-    mov r8, r11 ; fd du shellcode
+    mov r8, r12 ; fd du shellcode
     xor r9, r9 ; offset 0
     mov rax, 9 ; syscall mmap
     syscall
