@@ -16,5 +16,5 @@ _start:
     syscall
 
     mov rax, 60
-    mov rdi, 1
+    xor rdi, rdi    // j'ai changé cette partie car ca avait fait un bug ( on restait en = 1 alors qu'on doit etre à 0)
     syscall
