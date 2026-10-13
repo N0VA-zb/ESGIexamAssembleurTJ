@@ -1,6 +1,27 @@
 BITS 64
 default rel
 
+; --- offsets Elf64_Ehdr ---
+%define E_ENTRY  0x18
+%define E_PHOFF  0x20
+%define E_PHNUM  0x38
+
+; --- offsets Elf64_Phdr ---
+%define P_TYPE      0x00
+%define P_FLAGS     0x04
+%define P_OFFSET    0x08
+%define P_VADDR     0x10
+%define P_FILESZ    0x20
+%define P_MEMSZ     0x28
+%define P_ALIGN     0x30
+%define P_PHDR_SIZE 56
+
+; --- types ---
+%define PT_NOTE 4
+%define PT_LOAD 1
+%define PF_R    4
+%define PF_X    1
+
 section .data
     msg db "parcer: alive", 10
     msg_len equ $ - msg
