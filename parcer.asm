@@ -14,6 +14,9 @@ section .text
     global _start
 
 _start:
+    mov rax, [rsp]          ; argc
+    cmp rax, 2
+    jl .usage
     mov rax, 1
     mov rdi, 1
     lea rsi, [msg]
@@ -22,4 +25,9 @@ _start:
 
     mov rax, 60
     xor rdi, rdi
+    syscall
+
+.usage:
+    mov rax, 60
+    mov rdi, 1
     syscall
