@@ -91,10 +91,13 @@ _start:
     and rax, ~0xFFF     ; enleve les 12 bits du bas
 
     mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
-    mov dword [rbx + P_FLAGS], PF_R|PF_X ; flags = lisible + executable
-    mov [rbx + P_OFFSET], rax           ; offset = vaddr
-    mov [rbx + P_VADDR], rax            ; vaddr
-    mov [rbx + P_PADDR], rax            ; paddr
+    mov dword [rbx + P_FLAGS], PF_R | PF_X ; flags = lisible + executable
+    mov [rbx + P_OFFSET], rax ; offset = vaddr
+    mov [rbx + P_VADDR], rax ; vaddr
+    mov [rbx + P_PADDR], rax ; paddr
+    mov [rbx + P_FILESZ], 0  ; filesz = 0 pour l'instant
+    mov [rbx + P_MEMSZ], 0  ; memsz = 0 pour l'instant
+    mov qword [rbx + P_ALIGN], 0x1000 ; alignement page
 
     mov rax, 1  ; syscall write
     mov rdi, 1  ; stdout
