@@ -1,20 +1,21 @@
-- Projet Assembleur — ELF Infector
+    - Projet Assembleur — ELF Infector
 
-L'objectif est d'infecter un binaire ELF shellcode qui s'exécute au lancement du programme.
+    L'objectif est d'infecter un binaire ELF via un shellcode qui s'exécute au lancement du programme.
 
-l'arborescence : 
+    l'arborescence : 
 
-ESGIexamAssembleurTJ/
-/ infecteur.asm qui va injecter un shellcode dans un binaire ELF
-/ reverseshell.asm c'est le shellcode reverseshell (connexion vers l'attaquant)
-/ README.md
+    ESGIexamAssembleurTJ/
+    /parcer.asm qui va analyser le binaire ELF
+    / infecteur.asm qui va injecter un shellcode dans un binaire ELF
+    / reverseshell.asm c'est le shellcode reverseshell (connexion vers l'attaquant)
+    / README.md
 
-- Compilation
+    - Compilation
 
-parcer : 
-nasm -f elf64 parcer.asm -o parcer.o
-ld parcer.o -o parcer
+    parcer : 
+    nasm -f elf64 parcer.asm -o parcer.o
+    ld parcer.o -o parcer
 
-infecteur :
-nasm -f elf64 infecteur.asm -o infecteur.o
-ld infecteur.o -o infecteur
+    infecteur :
+    nasm -f elf64 infecteur.asm -o infecteur.o
+    ld infecteur.o -o infecteur
