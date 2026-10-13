@@ -74,7 +74,7 @@ _start:
     mov rdi, 1
     syscall
 
-    ;print_hex
+    ;print_hex affiche rax en hexa
     print_hex:
     push rbx    ;
     push rcx    ;
