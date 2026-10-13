@@ -84,14 +84,19 @@ _start:
     syscall
 
     .found: ; label : PT_NOTE trouve
+
+    mov rax, [fsize]    ; taille du fichier cible
+    add rax, 0xFFF  ; arrondir au 0x1000 superieur
+    and rax, ~0xFFF     ; enleve les 12 bits du bas
+
     mov rax, 1  ; syscall write
     mov rdi, 1  ; stdout
     lea rsi, [msg_found]    ; message
     mov rdx, msg_found_len  ; longueur
     syscall
 
-    mov rax, 60                         ; syscall exit
-    xor rdi, rdi                        ; code de retour 0 (succes)
+    mov rax, 60 ; syscall exit
+    xor rdi, rdi        ; code de retour 0 (succes)
     syscall
 
     ;exit
