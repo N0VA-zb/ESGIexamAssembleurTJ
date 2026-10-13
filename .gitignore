@@ -1,0 +1,5 @@
+*.o
+*.bin
+parcer
+infecteur
+test_*
