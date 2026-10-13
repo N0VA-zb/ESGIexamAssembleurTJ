@@ -66,6 +66,9 @@ _start:
     mov rax, 9              ; mmap
     syscall
     mov [buf], rax
+    mov rax, [buf]  ; base du fichier mappe
+    mov rbx, [rax + E_PHOFF]    ; e_phoff = offset table phdrs
+    add rbx, rax    ; rbx = adresse du 1er phdr
 
     ;exit
     mov rax, 60
