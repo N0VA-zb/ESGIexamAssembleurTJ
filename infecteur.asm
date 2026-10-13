@@ -118,7 +118,7 @@ _start:
     mov rsi, r15 ; taille du shellcode
     mov rdx, 1 ; PROT_READ
     mov r10, 2 ; MAP_PRIVATE
-    mov r8, r14 ; fd du shellcode
+    mov r8, r11 ; fd du shellcode
     xor r9, r9 ; offset 0
     mov rax, 9 ; syscall mmap
     syscall
