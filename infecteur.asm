@@ -106,8 +106,8 @@ _start:
     syscall
     test rax, rax
     js .exit_ok ; si erreur, on sort proprement
-    mov r14, rax ; on garde le fd dans r14
-    mov rdi, r14 ;  on le remet dans rdi pour lseek
+    mov r11, rax ; on garde le fd dans r11
+    mov rdi, r11 ;  on le remet dans rdi pour lseek
     xor rsi, rsi ; offset 0
     mov rdx, 2 ; SEEK_END
     mov rax, 8 ; syscall lseek
