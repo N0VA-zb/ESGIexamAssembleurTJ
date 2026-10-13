@@ -10,6 +10,7 @@ section .data
 section .bss
     fd: resq 1 ; on réserve 8 octets pour stocker le file descriptor
     fsize: resq 1   ; taille du fichier
+    buf: resq 1
 
 section .text
     global _start
@@ -33,6 +34,17 @@ _start:
     mov rax, 8       ; syscall lseek
     syscall
     mov [fsize], rax    ; rax = taille du fichier
+
+    ;partie mmap
+    xor rdi, rdi            ; addr NULL
+    mov rsi, [fsize]        ; longuer du fichier
+    mov rdx, 3              ; PROT_READ et WRITE
+    mov r10, 2
+    mov r8, [fd]
+    xor r9, r9
+    mov rax, 9              ; mmap
+    syscall
+    mov [buf], rax
 
     ;write
     mov [fd], rax
